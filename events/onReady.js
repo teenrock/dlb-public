@@ -16,21 +16,46 @@ function onReady (Discord, client, message, channel, path, fs, decache) {
   
 
   networksList = []; // Networks List ['A00', 'B00', 'C00'] 
-  linkedServersList = [];
+  linkedHooksList = [];
   linkedFilesList = [];
-  unlinkedServersList = [];
+  unlinkedHooksList = [];
   unlinkedFilesList = [];
+  unlinkedChanIdsList = [];
   linkedChanIDsList = [];
 
   maxSlot = 5;
 
-  // Create networksList & SlotList
+  netText = ``;
+
+  fs.readdirSync(networksDir).forEach(network => {
+    netText = netText + "\n  " + network + "netList = [];";
+  })
+
+  var netListsLoader = "./modules/netListsLoader.js";
+
+  var writeListLoader = function() {
+
+    var fileText = `function loadLists() {\n  ${netText}\n\n}\n\nmodule.exports = loadLists;`;
+
+    fs.writeFileSync(netListsLoader, fileText)
+
+    const loadLists = require("." + netListsLoader)
+    loadLists()
+
+  }
+
+  if (!fs.existsSync(netListsLoader)) fs.createFile(netListsLoader).then(writeFileSync => writeListLoader());
+  else writeListLoader();
+
   fs.readdirSync(networksDir).forEach(network => { // A00, B00, C00
     var networkDir = networksDir + network + "/";
 
     networksList.push(network) && console.log(" # NETWORK  : " + network);
 
     fs.readdirSync(networkDir).forEach(dir => { // Servers IDs Directories
+
+      if (dir == ".keep") return
+
       var guildDir =  networkDir + dir + "/";
       console.log(" Serveur " + dir + " enregistré sur " + network)
 
@@ -41,16 +66,19 @@ function onReady (Discord, client, message, channel, path, fs, decache) {
 
         } else {
 
+          var fileName = file.split(".js").join("")
+
           var guildfile = guildDir + file;
 
           var hook = require("." + guildfile)
 
           hook
 
-          linkedServersList.push(hook)
+          linkedHooksList.push(hook)
           linkedFilesList.push(file)
 
           console.log(" Fichier " + file + " chargé")
+          console.log(" --- " + fileName)
         }
       })
       
@@ -59,14 +87,21 @@ function onReady (Discord, client, message, channel, path, fs, decache) {
   })
 
   fs.readdirSync(unlinkedDir).forEach(dir => {
+
+    if (dir == ".keep") return
+
     var unlinkedGuildDir = unlinkedDir + dir + "/";
 
     fs.readdirSync(unlinkedGuildDir).forEach(file => {
 
+      var fileName = file.split(".js").join("")
+
       var hook = require("." + unlinkedGuildDir + file)
       hook(Discord, client)
-      unlinkedServersList.push(hook)
+
+      unlinkedHooksList.push(hook)
       unlinkedFilesList.push(file)
+      unlinkedChanIdsList.push(fileName)
 
     })
   })
@@ -76,7 +111,6 @@ function onReady (Discord, client, message, channel, path, fs, decache) {
 
   console.log("\n Unlinked FileList : \n")
   unlinkedFilesList.forEach(file => console.log(" " + file));
-
 
 }
 

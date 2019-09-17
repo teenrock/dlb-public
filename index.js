@@ -48,8 +48,14 @@ client.on("message", (message) => {
     unlinkCmd(Discord, client, message, fs, decache, path)
 
   } else if (message.content == "!purge webhooks") {
+    console.log(message.channel.guild)
     
   }
+
+  var channelID = message.channel.id;
+  var channel = client.channel.get(channelID);
+
+  
 
 });
 
