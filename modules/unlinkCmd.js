@@ -21,10 +21,12 @@ function unlinkCmd(Discord, client, message, fs, decache, path) {
 
           } else if ((user.id == message.author.id) && (reaction.message.id == msg.id)) { // on vérifie que l'id utilisateur et l'id du message correspondent respectivement
 
-            // on réagit en approuvant ou pas
+            // Si on désapprouve on arrete ici
             if (reaction.emoji == "🇳") return
+            // Sinon on lance la procédure de delink
             else if (reaction.emoji == "🇾") {
 
+              // si le message n'a pas déjà été supprimé on le supprime
               if ((msg != undefined)||(msg != null)) msg.delete();
 
               var fileText = `function hook(Discord, client) {
@@ -33,6 +35,28 @@ function unlinkCmd(Discord, client, message, fs, decache, path) {
 module.exports = hook`;
 
             // DELINK CODE
+            linkedChanIDsList.map(linkedID => {
+              
+              console.log(linkedID)
+
+              if (chanID == linkedID) {
+
+                var idToRemove = linkedID;
+                var filterdIDs = linkedChanIDsList.filter(item => !idToRemove.includes(item))
+                console.log()
+
+                newNetList = []
+
+                filterdIDs.forEach(item => newNetList.push(item))
+
+                linkedChanIDsList = []
+
+                newNetList.forEach(id => linkedChanIDsList.push(id) && console.log(linkedChanIDsList))
+                
+              }
+
+            })
+
             if (fs.existsSync(linkedGuildFilePath)) fs.removeSync(linkedGuildFilePath) // on supprime le fichier dans le dossier ./linked_servers/
 
             fs.readdirSync(networksDir).forEach(network => { // on lit chaque dossier dans le dossier ./networks/ puis pour chaque réseau
@@ -50,11 +74,13 @@ module.exports = hook`;
                 fs.removeSync(linkedGuildFile) && console.log("Le fichier de configuration du salon " + linkedGuildFile + " vient d'être supprimé") // si le fichier existe on le supprime
 
                 fs.readdir(linkedGuildDir, (err, files) => { // 
+                  if (!files) fs.rmdir(linkedGuildDir) && console.log(" Le dossier " + linkedGuildDir + " est vide, il a été supprimé")
                   var fileCount = files.length;
                   if (fileCount == 0) fs.rmdir(linkedGuildDir) && console.log(" Le dossier " + linkedGuildDir + " est vide, il a été supprimé")
                 })
                 
                 fs.readdir(linkedDir + guildID, (err, files) => { // ensuite on vérifie si le dossier ./linked_servers/ contient encore des fichiers de configurations d'autres salons
+                  if (!files) fs.rmdir(linkedDir + guildID) && console.log(" Le dossier " + linkedDir + guildID + "/ est vide, il a été supprimé")
                   var fileCount = files.length;
                   if (fileCount == 0) fs.rmdir(linkedDir + guildID) && console.log(" Le dossier " + linkedDir + guildID + "/ est vide, il a été supprimé")
                 })
