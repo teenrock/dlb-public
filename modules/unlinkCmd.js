@@ -34,7 +34,7 @@ module.exports = hook`;
 
             // DELINK CODE
             if (fs.existsSync(linkedGuildFilePath)) fs.removeSync(linkedGuildFilePath) // on supprime le fichier dans le dossier ./linked_servers/
-              // Ici il faudra supprimer le fichier p
+
             fs.readdirSync(networksDir).forEach(network => { // on lit chaque dossier dans le dossier ./networks/ puis pour chaque réseau
               var linkedGuildFile = networksDir + network + "/" + guildID + "/" + chanID + ".js";
               var linkedGuildDir = networksDir + network + "/" + guildID + "/";

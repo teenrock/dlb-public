@@ -20,49 +20,85 @@ function onReady (Discord, client, message, channel, path, fs, decache) {
   linkedFilesList = [];
   unlinkedHooksList = [];
   unlinkedFilesList = [];
-  unlinkedChanIdsList = [];
+  unlinkedChanIDsList = [];
   linkedChanIDsList = [];
 
   maxSlot = 5;
 
-  netText = ``;
 
-  fs.readdirSync(networksDir).forEach(network => {
-    netText = netText + "\n  " + network + "netList = [];";
-  })
-
-  var netListsLoader = "./modules/netListsLoader.js";
+  var netListsLoaderPath = "./modules/netListsLoader.js";
 
   var writeListLoader = function() {
 
-    var fileText = `function loadLists() {\n  ${netText}\n\n}\n\nmodule.exports = loadLists;`;
+    listLoaderTxt = ``;
 
-    fs.writeFileSync(netListsLoader, fileText)
+    fs.readdirSync(networksDir).forEach(network => {
+      listLoaderTxt = listLoaderTxt + "\n" + network + ` = [];\nnetworksList.push(${network});\npushTo_${network} = function(id) {${network}.push(id) };`;
+    })
 
-    const loadLists = require("." + netListsLoader)
+    var fileText = `function loadLists() {\n\n  ${listLoaderTxt}\n\n}\n\nmodule.exports = loadLists;`;
+
+    fs.writeFileSync(netListsLoaderPath, fileText)
+
+    const loadLists = require("." + netListsLoaderPath)
     loadLists()
 
-  }
+  };
 
-  if (!fs.existsSync(netListsLoader)) fs.createFile(netListsLoader).then(writeFileSync => writeListLoader());
+
+  var listPushLoaderPath = "./modules/listPushLoader.js";
+
+  var writeListPushLoader = function() {
+
+    listPusherTxt = ``;
+    netChoice = null;
+
+    fs.readdirSync(networksDir).forEach(network => {
+      listPusherTxt = listPusherTxt + "\n" + `    if (netChoice == "${network}") pushTo_${network}`;
+    })
+
+    var fileText = `\nfunction loadPusherList(netChoice) {\n\n  if (netChoice == null) return\n\n  else {\n${listPusherTxt}\n\n    console.log(" Un salon vient d'être ajouté au réseau : " + netChoice)\n  }\n\n}\n\nmodule.exports = loadPusherList;`;
+
+    fs.writeFileSync(listPushLoaderPath, fileText)
+
+    const loadPusherList = require("." + listPushLoaderPath)
+    loadPusherList(netChoice)
+
+  };
+
+
+
+  if (!fs.existsSync(netListsLoaderPath)) fs.createFile(netListsLoaderPath).then(writeFileSync => writeListLoader());
+
   else writeListLoader();
 
+  if (!fs.existsSync(listPushLoaderPath)) fs.createFile(listPushLoaderPath);
+
+  else writeListPushLoader();
+
+
+
   fs.readdirSync(networksDir).forEach(network => { // A00, B00, C00
+
     var networkDir = networksDir + network + "/";
 
-    networksList.push(network) && console.log(" # NETWORK  : " + network);
+    console.log(" # NETWORK  : " + network);
+
 
     fs.readdirSync(networkDir).forEach(dir => { // Servers IDs Directories
 
       if (dir == ".keep") return
 
       var guildDir =  networkDir + dir + "/";
+
       console.log(" Serveur " + dir + " enregistré sur " + network)
+
 
       fs.readdirSync(guildDir).forEach(file => {
 
         if (!file) {
-          console.log(" --- Le serveur " + dir + " est enregistré sur le réseau " + network + " mais ne contient aucun fichier de configuration")
+
+          fs.rmdir(guildDir) && console.log(" Le serveur " + dir + " est enregistré sur le réseau " + network + " mais ne contient aucun fichier de configuration, il a donc été supprimé\n")
 
         } else {
 
@@ -76,15 +112,17 @@ function onReady (Discord, client, message, channel, path, fs, decache) {
 
           linkedHooksList.push(hook)
           linkedFilesList.push(file)
+          linkedChanIDsList.push(fileName)
 
-          console.log(" Fichier " + file + " chargé")
-          console.log(" --- " + fileName)
+          console.log("       - " + file + " chargé")
         }
       })
       
     })
     console.log()
   })
+
+
 
   fs.readdirSync(unlinkedDir).forEach(dir => {
 
@@ -97,20 +135,25 @@ function onReady (Discord, client, message, channel, path, fs, decache) {
       var fileName = file.split(".js").join("")
 
       var hook = require("." + unlinkedGuildDir + file)
-      hook(Discord, client)
+
+      hook
 
       unlinkedHooksList.push(hook)
       unlinkedFilesList.push(file)
-      unlinkedChanIdsList.push(fileName)
+      unlinkedChanIDsList.push(fileName)
 
     })
   })
+
+
 
   console.log("\n Linked FileList : \n")
   linkedFilesList.forEach(file => console.log(" " + file));
 
   console.log("\n Unlinked FileList : \n")
   unlinkedFilesList.forEach(file => console.log(" " + file));
+
+
 
 }
 

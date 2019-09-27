@@ -1,16 +1,16 @@
 function loadLists() {
+
   
-  A00netList = [];
-  B00netList = [];
-  C00netList = [];
-  D00netList = [];
-  E00netList = [];
-  F00netList = [];
-  H00netList = [];
-  I00netList = [];
-  J00netList = [];
-  K00netList = [];
+A00 = [];
+networksList.push(A00);
+pushTo_A00 = function(id) {A00.push(id) };
+B00 = [];
+networksList.push(B00);
+pushTo_B00 = function(id) {B00.push(id) };
+C00 = [];
+networksList.push(C00);
+pushTo_C00 = function(id) {C00.push(id) };
 
 }
 
- module.exports = loadLists;
+module.exports = loadLists;

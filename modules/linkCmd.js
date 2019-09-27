@@ -13,6 +13,9 @@ function linkCmd(Discord, client, message, fs, decache, path) {
     if (!fs.existsSync(linkedGuildPath)) fs.mkdir(linkedGuildPath)
 
       fs.readdir(linkedGuildPath, (err, files) => {
+      
+      if (!files) return console.log("err 001")
+
       var fileCount = files.length;
       if (fileCount >= 2) {
         return message.reply("Le maximum de **" + fileCount + "** fichiers de configuration autorisés par serveur a été atteint.")
@@ -69,7 +72,7 @@ function linkCmd(Discord, client, message, fs, decache, path) {
                     fs.rename(unlinkedGuilFilePath, newGuildFilePath, function (err) {
                       if (err) throw err
                       else {
-                        console.log("Le serveur " + guildID + " a été ajouté au réseau **" + netChoice + "**")
+                        console.log("Le serveur " + guildID + " a été ajouté au réseau " + netChoice)
 
                         fs.readdir(unlinkedDir + guildID, (err, files) => { // 
                           var fileCount = files.length;
@@ -84,20 +87,35 @@ function linkCmd(Discord, client, message, fs, decache, path) {
                 }
               };
 
+              var addGuildToNetworkChoice = function(Discord, client) {
+
+                if (fs.existsSync(newGuildFilePath)) {
+
+                  linkedChanIDsList.push(chanID)
+
+                  var listPushLoaderPath = "./modules/listPushLoader.js";
+
+                  const loadPusherList = require("." + listPushLoaderPath)
+                  loadPusherList(netChoice)
+                }
+                    
+              };
+
               var createFileServ = function() {
 
                 message.channel.createWebhook(client.user.tag, default_avatar).then(wb=> {
 
                   var hookID = wb.id;
                   var hookToken = wb.token;
-                  var fileText = `function hook(Discord, client) {
-  hook_${chanID} = new Discord.WebhookClient("${hookID}", "${hookToken}");
-}
-module.exports = hook`;
+                  var fileText = `var Discord = require("discord.js")\n
+hook_${chanID} = new Discord.WebhookClient("${hookID}", "${hookToken}");\n
+module.exports = hook_${chanID}`;
 
                   if (fs.existsSync(newGuildFilePath)) {
 
                     fs.writeFileSync(newGuildFilePath, fileText)
+
+                    addGuildToNetworkChoice()
 
                     message.channel.send(`Votre salon **#` + message.channel.name + "** vient d'être inscrit sur le réseau **" + netChoice + "**")
 
@@ -105,22 +123,13 @@ module.exports = hook`;
 
                   console.log("ID du salon : " + wb.channelID)
 
+                  
+
                 })
 
               };
 
-              var addGuildToNetworkChoice = function(Discord, client) {
-
-                if (fs.existsSync(newGuildFilePath)) {
-
-                  var hook = require(newGuildFilePath)
-                  hook
-
-                  linkedServersList.push(hook)
-                  linkedChanIDsList.push(chanID)
-                }
-                    
-              };
+              
 
               if (fileCount == maxSlot) {
                 return message.channel.send("Le réseau **" + netChoice + "** est saturé, veuillez re-taper la commande **\`!link\`** et choisir un autre réseau.").then(msg => msg.delete(7000))
@@ -128,13 +137,15 @@ module.exports = hook`;
               } else if (fileCount == 0) {
                 message.channel.send("Vous êtes le premier serveur sur le réseau **" + netChoice + "**").then(msg => {
                   registerGuildPath()
-                  createFileServ()           
+                  createFileServ()
+                  
                 })
 
               } else if ((fileCount <= maxSlot-1) && (fileCount >= 1)) {
                 message.channel.send("**"+ fileCount + " serveur(s)** se trouve(nt) actuellement sur le réseau **" + netChoice + "**").then(msg => {
                   registerGuildPath()
                   createFileServ()
+
                 })
               }
 

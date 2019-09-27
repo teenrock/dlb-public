@@ -10,9 +10,8 @@ function guildCreate(Discord, client, guild, fs, decache) {
   guild.createChannel("discord-link-bot", { type: "text"}).then(chan => {
 
     var guildFile = guildDir + chan.id + ".js";
-    var fileText = `function hook(Discord, client) {
-\/\/hook_${chan.id} = undefined;
-}
+    var fileText = `var Discord = require("discord.js")\n
+\/\/hook_${chan.id} = undefined;\n
 module.exports = hook`;
 
     chan.send(`**Discord Link Bot**`);
