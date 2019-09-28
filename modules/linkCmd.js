@@ -48,6 +48,7 @@ function linkCmd(Discord, client, message, fs, decache, path) {
             var newGuildFilePath = networksDir + netChoice + "/" + guildID + "/" + chanID + ".js";
 
             fs.readdir(networksDir + netChoice, (err, files) => {
+              
               var fileCount = files.length;
               console.log(fileCount);
 
@@ -94,9 +95,10 @@ function linkCmd(Discord, client, message, fs, decache, path) {
                   linkedChanIDsList.push(chanID)
 
                   var listPushLoaderPath = "./modules/listPushLoader.js";
+                  var id = chanID;
 
                   const loadPusherList = require("." + listPushLoaderPath)
-                  loadPusherList(netChoice)
+                  loadPusherList(netChoice, id)
                 }
                     
               };

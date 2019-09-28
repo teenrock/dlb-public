@@ -70,7 +70,10 @@ client.on("message", (message) => {
     else if (message.content) msg = `${message.content}\n ${att.url}`;
   })
 
-  linkedChanIDsList.forEach(id => { // global link
+
+  // GLOBAL LINK
+  /*
+  linkedChanIDsList.forEach(id => {
 
     if (id != channelID) return
 
@@ -97,12 +100,63 @@ client.on("message", (message) => {
       })
     })
   })
+*/
 
-  if (message.content == "test") {
-  	id = message.channel.id;
-  }
+  networksList.forEach(list => {
+
+  	if (!list.includes(channelID)) return
+
+  	else {
+
+    list.forEach(element => {
+
+      if (element != channelID) {
+
+      	fs.readdirSync("./networks/").forEach(network => {
+
+          fs.readdirSync("./networks/" + network + "/").forEach(guildDir => {
+
+          	if (guildDir != ".keep") fs.readdirSync("./networks/" + network + "/" + guildDir).forEach(file => {
+
+          		var fileName = file.split(".js").join("")
+
+          if (fileName == element) {
+
+          	var wb = require("./networks/" + network + "/" + guildDir + "/" + element + ".js")
+            var wbFile = "./networks/" + network + "/" + guildDir + "/" + element + ".js";
+            wb.edit(`${message.author.username}`, `${avatarURL}`).catch(err => {
+              if (err) console.log(err)
+            }).then(wb => {
+              if (wb != undefined) wb.send(msg)
+              else fs.removeSync(wbFile)
+            })
+
+          }
+
+          	})
+
+          })
+
+        })
+      }
+  	  })
+    }
+  })
 
 // END OF LINK CODE  
+if (message.content == "log A") {
+	console.log(A00)
+} else if (message.content == "log B") {
+	console.log(B00)
+} else if (message.content == "log C") {
+	console.log(C00)
+} else if (message.content == "log all") {
+	networksList.forEach(net => {
+		net.map(id => {
+			console.log(id)
+		})
+	})
+}
 
 });
 

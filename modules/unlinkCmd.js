@@ -35,9 +35,8 @@ function unlinkCmd(Discord, client, message, fs, decache, path) {
 module.exports = hook`;
 
             // DELINK CODE
+
             linkedChanIDsList.map(linkedID => {
-              
-              console.log(linkedID)
 
               if (chanID == linkedID) {
 
