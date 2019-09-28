@@ -16,49 +16,50 @@ function linkCmd(Discord, client, message, fs, decache, path) {
       
       if (!files) return console.log("err 001")
 
-      var fileCount = files.length;
-      if (fileCount >= 2) {
-        return message.reply("Le maximum de **" + fileCount + "** fichiers de configuration autorisés par serveur a été atteint.")
-      } else if (fileCount <= 1) {
+      var maxFiles = files.length;
+
+      if (maxFiles >= 2) return message.reply("Le maximum de **" + maxFiles + "** fichiers de configuration autorisés par serveur a été atteint.")
+
+      else if (maxFiles <= 1) {
 
         message.reply("veuillez choisir un réseau :").then(msg => {
 
+          msg.react("\u0031\u20E3").then(react0 => msg.react("\u0032\u20E3").then(react1 => msg.react("\u0033\u20E3")))
 
-      msg.react("\u0031\u20E3").then(react0 => msg.react("\u0032\u20E3").then(react1 => msg.react("\u0033\u20E3")))
 
+          client.on("messageReactionAdd", (reaction, user, channel) => {
 
-      client.on("messageReactionAdd", (reaction, user, channel) => {
+          if (user.id != client.user.id) { // is not bot user
 
-        if (user.id != client.user.id) { // is not bot user
+            if (user.id != message.author.id) { // user react is not the same of user message
+              message.channel.send(`**${user}** pas touche !`).then(msg => reaction.remove() && msg.delete(7500));
 
-          if (user.id != message.author.id) { // user react is not the same of user message
-            message.channel.send(`**${user}** pas touche !`).then(msg => reaction.remove() && msg.delete(7500));
+            } else if ((user.id == message.author.id) && (reaction.message.id == msg.id)) {
 
-          } else if ((user.id == message.author.id) && (reaction.message.id == msg.id)) {
+              if (reaction.emoji == "\u0031\u20E3") netChoice = "A00";
+              else if (reaction.emoji == "\u0032\u20E3") netChoice = "B00";
+              else if (reaction.emoji == "\u0033\u20E3") netChoice = "C00";
 
-            if (reaction.emoji == "\u0031\u20E3") netChoice = "A00";
-            else if (reaction.emoji == "\u0032\u20E3") netChoice = "B00";
-            else if (reaction.emoji == "\u0033\u20E3") netChoice = "C00";
+              if ((msg != undefined)||(msg != null)) msg.delete();
 
-            if ((msg != undefined)||(msg != null)) msg.delete();
+              console.log("\nnetwork choice : " + netChoice)
+              console.log("maxSlot :" + maxSlot)
 
-            console.log("\nnetwork choice : " + netChoice)
-            console.log("maxSlot :" + maxSlot)
+              var newGuildFilePath = networksDir + netChoice + "/" + guildID + "/" + chanID + ".js";
 
-            var newGuildFilePath = networksDir + netChoice + "/" + guildID + "/" + chanID + ".js";
-
-            fs.readdir(networksDir + netChoice, (err, files) => {
+              fs.readdir(networksDir + netChoice, (err, files) => {
               
-              var fileCount = files.length;
-              console.log(fileCount);
+                var fileCount = files.length;
 
-              var registerGuildPath = function() {
+                console.log(fileCount);
+
+                var registerGuildPath = function() {
                 
-                if (!fs.existsSync(unlinkedGuildPath)) { // il n'y a pas de dossier de configuration pourtant pour nom l'identifiant de ce serveur dans ./unlinked_servers/
+                  if (!fs.existsSync(unlinkedGuildPath)) { // il n'y a pas de dossier de configuration pourtant pour nom l'identifiant de ce serveur dans ./unlinked_servers/
 
-                  if (fs.existsSync(linkedGuildPath)) { // un dossier de configuration pour ce serveur existe déjà dans le ./linked_servers/
+                    if (fs.existsSync(linkedGuildPath)) { // un dossier de configuration pour ce serveur existe déjà dans le ./linked_servers/
 
-                  }
+                    }
 
                 } else { // si il y a un dossier de configuration pour ce serveur dans ./unlinked_servers/
 
@@ -136,15 +137,22 @@ module.exports = hook_${chanID}`;
               if (fileCount == maxSlot) {
                 return message.channel.send("Le réseau **" + netChoice + "** est saturé, veuillez re-taper la commande **\`!link\`** et choisir un autre réseau.").then(msg => msg.delete(7000))
 
-              } else if (fileCount == 0) {
+              } else if (fileCount == 1) {
                 message.channel.send("Vous êtes le premier serveur sur le réseau **" + netChoice + "**").then(msg => {
                   registerGuildPath()
                   createFileServ()
                   
                 })
 
-              } else if ((fileCount <= maxSlot-1) && (fileCount >= 1)) {
-                message.channel.send("**"+ fileCount + " serveur(s)** se trouve(nt) actuellement sur le réseau **" + netChoice + "**").then(msg => {
+              } else if (fileCount == 2) {
+                message.channel.send("Vous êtes le second serveur sur le réseau **" + netChoice + "**").then(msg => {
+                  registerGuildPath()
+                  createFileServ()
+                  
+                })
+
+              } else if ((fileCount < maxSlot) && (fileCount > 1)) {
+                message.channel.send(`**${fileCount-1} serveur(s)** se trouve(nt) actuellement sur le réseau ** ${netChoice} **`).then(msg => {
                   registerGuildPath()
                   createFileServ()
 

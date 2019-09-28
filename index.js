@@ -72,35 +72,6 @@ client.on("message", (message) => {
 
 
   // GLOBAL LINK
-  /*
-  linkedChanIDsList.forEach(id => {
-
-    if (id != channelID) return
-
-    else fs.readdirSync("./networks/").forEach(network => {
-
-      fs.readdirSync("./networks/" + network + "/").forEach(guildDir => {
-
-        if (guildDir != ".keep") fs.readdirSync("./networks/" + network + "/" + guildDir).forEach(file => {
-
-          var fileName = file.split(".js").join("")
-
-          if (fileName != channelID) {
-
-            var wb = require("./networks/" + network + "/" + guildDir + "/" + file)
-            var wbFile = "./networks/" + network + "/" + guildDir + "/" + file;
-            wb.edit(`${message.author.username}`, `${avatarURL}`).catch(err => {
-              if (err) console.log(err)
-            }).then(wb => {
-              if (wb != undefined) wb.send(msg)
-              else fs.removeSync(wbFile)
-            })
-          }      
-        })
-      })
-    })
-  })
-*/
 
   networksList.forEach(list => {
 
@@ -108,37 +79,87 @@ client.on("message", (message) => {
 
   	else {
 
-    list.forEach(element => {
+      list.forEach(element => {
 
-      if (element != channelID) {
+        if (element != channelID) {
 
-      	fs.readdirSync("./networks/").forEach(network => {
+          fs.readdirSync("./networks/").forEach(network => {
 
-          fs.readdirSync("./networks/" + network + "/").forEach(guildDir => {
+            fs.readdirSync("./networks/" + network + "/").forEach(guildDir => {
 
-          	if (guildDir != ".keep") fs.readdirSync("./networks/" + network + "/" + guildDir).forEach(file => {
+           	  if (guildDir != ".keep") fs.readdirSync("./networks/" + network + "/" + guildDir).forEach(file => {
 
           		var fileName = file.split(".js").join("")
 
-          if (fileName == element) {
+                if (fileName == element) {
 
-          	var wb = require("./networks/" + network + "/" + guildDir + "/" + element + ".js")
-            var wbFile = "./networks/" + network + "/" + guildDir + "/" + element + ".js";
-            wb.edit(`${message.author.username}`, `${avatarURL}`).catch(err => {
-              if (err) console.log(err)
-            }).then(wb => {
-              if (wb != undefined) wb.send(msg)
-              else fs.removeSync(wbFile)
+          	      var wb = require("./networks/" + network + "/" + guildDir + "/" + element + ".js")
+                  var wbFile = "./networks/" + network + "/" + guildDir + "/" + element + ".js";
+
+                  wb.edit(`${message.author.username}`, `${avatarURL}`).catch(err => {
+                    if (err) console.log(err)
+
+                  }).then(wb => {
+
+                    if (wb != undefined) wb.send(msg)
+
+                    else {
+                      // remove file
+                      fs.removeSync(wbFile)
+                      // remove id from linkedChanIDsList
+                      linkedChanIDsList.map(linkedID => {
+
+              			if (channelID == linkedID) {
+
+              			  var idToRemove = channelID;
+                		  var filterdIDs = linkedChanIDsList.filter(item => !idToRemove.includes(item))
+                		  console.log()
+
+                		  newNetList = []
+
+                		  filterdIDs.forEach(item => newNetList.push(item))
+
+                		  linkedChanIDsList = []
+
+                		  newNetList.forEach(id => linkedChanIDsList.push(id) && console.log(linkedChanIDsList))
+                
+              		    }
+
+                      })
+                      // ICI IL FAUT RETIRER L'ID DANS LA LISTE DU RESEAU OU IL SE TROUVAIT
+                      networksList.forEach(list => {
+
+  					    if (!list.includes(channelID)) return
+
+  						else {
+
+  						  var idToRemove = channelID;
+                		  var filterdIDs = linkedChanIDsList.filter(item => !idToRemove.includes(item))
+                		  console.log()
+
+                		  newNetList = []
+
+                		  filterdIDs.forEach(item => newNetList.push(item))
+
+                		  list = []
+
+                		  newNetList.forEach(id => list.push(id) && console.log(list))
+
+  						}
+  					})
+
+                  	}
+
+                  })
+
+                }
+
+              })
+
             })
 
-          }
-
-          	})
-
           })
-
-        })
-      }
+        }
   	  })
     }
   })
