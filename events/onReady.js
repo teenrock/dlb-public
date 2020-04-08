@@ -14,8 +14,10 @@ function onReady (Discord, client, message, channel, path, fs, decache) {
   linkedDir = "./linked_servers/";
   unlinkedDir = "./unlinked_servers/";
   
-
-  networksList = []; // Networks List ['A00', 'B00', 'C00'] 
+  netLists = []; // Networks List ['A00', 'B00', 'C00']
+  networksList = []; 
+  newNetworkList = [];
+  oldNetworksList = [];
   linkedHooksList = [];
   linkedFilesList = [];
   unlinkedHooksList = [];
@@ -33,10 +35,10 @@ function onReady (Discord, client, message, channel, path, fs, decache) {
     listLoaderTxt = ``;
 
     fs.readdirSync(networksDir).forEach(network => {
-      listLoaderTxt = listLoaderTxt + "\n" + network + ` = [];\nnetworksList.push(${network});\npushTo_${network} = function(id) { ${network}.push(id) };`;
+      listLoaderTxt = listLoaderTxt + "\n" + network + ` = [];\nnetworksList.push(${network});\npushTo_${network} = function(chanID) { ${network}.push(chanID) };`;
     })
 
-    var fileText = `function loadLists() {\n\n  ${listLoaderTxt}\n\n}\n\nmodule.exports = loadLists;`;
+    var fileText = `function loadLists(chanID) {\n\n  ${listLoaderTxt}\n\n}\n\nmodule.exports = loadLists;`;
 
     fs.writeFileSync(netListsLoaderPath, fileText)
 
@@ -55,15 +57,15 @@ function onReady (Discord, client, message, channel, path, fs, decache) {
     id = null;
 
     fs.readdirSync(networksDir).forEach(network => {
-      listPusherTxt = listPusherTxt + "\n" + `    if (netChoice == "${network}") pushTo_${network}(id);`;
+      listPusherTxt = listPusherTxt + "\n" + `    if (netChoice == "${network}") pushTo_${network}(chanID);`;
     })
 
-    var fileText = `\nfunction loadPusherList(netChoice, id) {\n\n  if (netChoice == null) return\n\n  else {\n${listPusherTxt}\n\n    console.log(" Un salon vient d'être ajouté au réseau : " + netChoice)\n  }\n\n}\n\nmodule.exports = loadPusherList;`;
+    var fileText = `\nfunction loadPusherList(netChoice, chanID) {\n\n  if (netChoice == null) return\n\n  else {\n${listPusherTxt}\n\n    console.log(" Un salon vient d'être ajouté au réseau : " + netChoice)\n  }\n\n}\n\nmodule.exports = loadPusherList;`;
 
     fs.writeFileSync(listPushLoaderPath, fileText)
 
     const loadPusherList = require("." + listPushLoaderPath)
-    loadPusherList(netChoice, id)
+    loadPusherList(netChoice)
 
   };
 
@@ -82,6 +84,8 @@ function onReady (Discord, client, message, channel, path, fs, decache) {
   fs.readdirSync(networksDir).forEach(network => { // A00, B00, C00
 
     var networkDir = networksDir + network + "/";
+
+    netLists.push(network)
 
     console.log(" # NETWORK  : " + network);
 
@@ -117,6 +121,7 @@ function onReady (Discord, client, message, channel, path, fs, decache) {
 
           const loadPusherList = require("." + listPushLoaderPath)
           loadPusherList(netChoice, id)
+
 
           linkedHooksList.push(hook)
           linkedFilesList.push(file)

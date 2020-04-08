@@ -7,59 +7,67 @@ function linkCmd(Discord, client, message, fs, decache, path) {
     var unlinkedGuildPath = unlinkedDir + guildID + "/";
     var unlinkedGuilFilePath = unlinkedDir + guildID + "/" + chanID + ".js";
 
-    if (fs.existsSync(linkedGuildFilePath)) return message.reply("ce salon est déjà relié a un réseau.\nUn même salon ne peut être relié à deux réseaux simultanément.\nSi vous souhaitez changer de réseau utilisez d'abord la commande **\`!unlink\`** ")
+
+
+    if (fs.existsSync(linkedGuildFilePath)) return message.reply(`ce salon est déjà relié à un réseau ou vous avez déjà effectué une demande.
+Un même salon ne peut être relié à deux réseaux simultanément.\nSi vous souhaitez changer de réseau ou effectuer une nouvelle demande, utilisez d'abord la commande **\`!unlink\`** `).then(msg => msg.delete(15000))
 
     if (!fs.existsSync(unlinkedGuildPath)) fs.mkdir(unlinkedGuildPath)
     if (!fs.existsSync(linkedGuildPath)) fs.mkdir(linkedGuildPath)
+
+    if (!fs.existsSync(linkedGuildFilePath)) fs.createFileSync(linkedGuildFilePath)
 
       fs.readdir(linkedGuildPath, (err, files) => {
       
       if (!files) return console.log("err 001")
 
-      var maxFiles = files.length;
+      var fileCount = files.length;
 
-      if (maxFiles >= 2) return message.reply("Le maximum de **" + maxFiles + "** fichiers de configuration autorisés par serveur a été atteint.")
+      if (fileCount >= 2) {
 
-      else if (maxFiles <= 1) {
+        return message.reply("Le maximum de **" + fileCount + "** fichiers de configuration autorisés par serveur a été atteint.")
 
-        message.reply("veuillez choisir un réseau :").then(msg => {
+      } else if (fileCount <= 1) {
 
-          msg.react("\u0031\u20E3").then(react0 => msg.react("\u0032\u20E3").then(react1 => msg.react("\u0033\u20E3")))
+        message.reply("Veuillez choisir un réseau :").then(msg => {
 
+      msg.react("\u0031\u20E3").then(react0 => msg.react("\u0032\u20E3").then(react1 => msg.react("\u0033\u20E3")))
 
-          client.on("messageReactionAdd", (reaction, user, channel) => {
+      client.on("messageReactionAdd", (reaction, user, channel) => {
 
-          if (user.id != client.user.id) { // is not bot user
+        if (user.id != client.user.id) { // is not bot user
 
-            if (user.id != message.author.id) { // user react is not the same of user message
-              message.channel.send(`**${user}** pas touche !`).then(msg => reaction.remove() && msg.delete(7500));
+          if (user.id != message.author.id) { // user react is not the same of user message
+            message.channel.send(`**${user}** pas touche !`).then(msg => reaction.remove() && msg.delete(7500));
 
-            } else if ((user.id == message.author.id) && (reaction.message.id == msg.id)) {
+          } else if ((user.id == message.author.id) && (reaction.message.id == msg.id)) {
 
-              if (reaction.emoji == "\u0031\u20E3") netChoice = "A00";
-              else if (reaction.emoji == "\u0032\u20E3") netChoice = "B00";
-              else if (reaction.emoji == "\u0033\u20E3") netChoice = "C00";
+            if (reaction.emoji == "\u0031\u20E3") netChoice = "A00";
+            else if (reaction.emoji == "\u0032\u20E3") netChoice = "B00";
+            else if (reaction.emoji == "\u0033\u20E3") netChoice = "C00";
 
-              if ((msg != undefined)||(msg != null)) msg.delete();
+            if ((msg != undefined)||(msg != null)) msg.delete();
 
-              console.log("\nnetwork choice : " + netChoice)
-              console.log("maxSlot :" + maxSlot)
+            console.log("\n network choice : " + netChoice)
+            console.log(" maxSlot :" + maxSlot)
 
-              var newGuildFilePath = networksDir + netChoice + "/" + guildID + "/" + chanID + ".js";
+            var newGuildFilePath = networksDir + netChoice + "/" + guildID + "/" + chanID + ".js";
 
-              fs.readdir(networksDir + netChoice, (err, files) => {
+            fs.readdir(networksDir + netChoice, (err, files) => {
               
-                var fileCount = files.length;
+              var fileCount = files.length;
+              console.log(fileCount);
 
-                console.log(fileCount);
-
-                var registerGuildPath = function() {
+  
+              var registerGuildPath = function() {
                 
-                  if (!fs.existsSync(unlinkedGuildPath)) { // il n'y a pas de dossier de configuration pourtant pour nom l'identifiant de ce serveur dans ./unlinked_servers/
+                if (!fs.existsSync(unlinkedGuildPath)) { // il n'y a pas de dossier de configuration portant pour nom l'identifiant de ce serveur dans ./unlinked_servers/
 
-                    if (fs.existsSync(linkedGuildPath)) { // un dossier de configuration pour ce serveur existe déjà dans le ./linked_servers/
+                  if (fs.existsSync(linkedGuildPath)) { // un dossier de configuration pour ce serveur existe déjà dans le ./linked_servers/
 
-                    }
+                    return console.log("TEST")
+
+                  }
 
                 } else { // si il y a un dossier de configuration pour ce serveur dans ./unlinked_servers/
 
@@ -74,7 +82,7 @@ function linkCmd(Discord, client, message, fs, decache, path) {
                     fs.rename(unlinkedGuilFilePath, newGuildFilePath, function (err) {
                       if (err) throw err
                       else {
-                        console.log("Le serveur " + guildID + " a été ajouté au réseau " + netChoice)
+                        console.log(" Le serveur " + guildID + " a été ajouté au réseau " + netChoice)
 
                         fs.readdir(unlinkedDir + guildID, (err, files) => { // 
                           var fileCount = files.length;
@@ -94,12 +102,12 @@ function linkCmd(Discord, client, message, fs, decache, path) {
                 if (fs.existsSync(newGuildFilePath)) {
 
                   linkedChanIDsList.push(chanID)
+                  
 
                   var listPushLoaderPath = "./modules/listPushLoader.js";
-                  var id = chanID;
 
                   const loadPusherList = require("." + listPushLoaderPath)
-                  loadPusherList(netChoice, id)
+                  loadPusherList(netChoice, chanID)
                 }
                     
               };
@@ -124,7 +132,7 @@ module.exports = hook_${chanID}`;
 
                   }
 
-                  console.log("ID du salon : " + wb.channelID)
+                  console.log(" ID du salon : " + wb.channelID)
 
                   
 
@@ -132,27 +140,19 @@ module.exports = hook_${chanID}`;
 
               };
 
-              
-
               if (fileCount == maxSlot) {
+                
                 return message.channel.send("Le réseau **" + netChoice + "** est saturé, veuillez re-taper la commande **\`!link\`** et choisir un autre réseau.").then(msg => msg.delete(7000))
 
-              } else if (fileCount == 1) {
+              } else if (fileCount <= 1) {
                 message.channel.send("Vous êtes le premier serveur sur le réseau **" + netChoice + "**").then(msg => {
                   registerGuildPath()
                   createFileServ()
                   
                 })
 
-              } else if (fileCount == 2) {
-                message.channel.send("Vous êtes le second serveur sur le réseau **" + netChoice + "**").then(msg => {
-                  registerGuildPath()
-                  createFileServ()
-                  
-                })
-
-              } else if ((fileCount < maxSlot) && (fileCount > 1)) {
-                message.channel.send(`**${fileCount-1} serveur(s)** se trouve(nt) actuellement sur le réseau ** ${netChoice} **`).then(msg => {
+              } else if ((fileCount <= maxSlot-1) && (fileCount >= 1)) {
+                message.channel.send("**"+ fileCount + " serveur(s)** se trouve(nt) actuellement sur le réseau **" + netChoice + "**").then(msg => {
                   registerGuildPath()
                   createFileServ()
 
